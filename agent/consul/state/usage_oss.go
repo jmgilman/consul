@@ -1,3 +1,4 @@
+//go:build !consulent
 // +build !consulent
 
 package state
@@ -16,7 +17,8 @@ func addEnterpriseNodeUsage(map[string]int, memdb.Change) {}
 
 func addEnterpriseServiceInstanceUsage(map[string]int, memdb.Change) {}
 
-func addEnterpriseServiceUsage(map[string]int, map[structs.ServiceName]uniqueServiceState) {}
+func addEnterpriseServiceUsage(map[string]int, map[structs.ServiceName]uniqueServiceState) {
+}
 
 func addEnterpriseKVUsage(map[string]int, memdb.Change) {}
 
