@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	serviceNamesUsageTable = "service-names"
-	kvUsageTable           = "kv-entries"
+	serviceNamesUsageTable      = "service-names"
+	kvUsageTable                = "kv-entries"
+	connectNativeInstancesTable = "connect-native"
 
 	tableUsage = "usage"
 )
@@ -199,10 +200,22 @@ func connectDeltas(change memdb.Change, usageDeltas map[string]int, delta int) {
 		if after.ServiceKind != structs.ServiceKindTypical {
 			usageDeltas[string(after.ServiceKind)] += 1
 		}
+
+		if before.ServiceConnect.Native != after.ServiceConnect.Native {
+			if before.ServiceConnect.Native {
+				usageDeltas[connectNativeInstancesTable] -= 1
+			}
+			if after.ServiceConnect.Native {
+				usageDeltas[connectNativeInstancesTable] += 1
+			}
+		}
 	} else {
 		svc := changeObject(change).(*structs.ServiceNode)
 		if svc.ServiceKind != structs.ServiceKindTypical {
 			usageDeltas[string(svc.ServiceKind)] += delta
+		}
+		if svc.ServiceConnect.Native {
+			usageDeltas[connectNativeInstancesTable] += delta
 		}
 	}
 }
@@ -299,6 +312,7 @@ func (s *Store) ServiceUsage() (uint64, ServiceUsage, error) {
 		string(structs.ServiceKindIngressGateway),
 		string(structs.ServiceKindMeshGateway),
 		string(structs.ServiceKindTerminatingGateway),
+		connectNativeInstancesTable,
 	} {
 		usage, err := firstUsageEntry(tx, kind)
 		if err != nil {
